@@ -7,7 +7,7 @@ DATA_FILE = "sample.xlsx"  # or "data/products.csv"
 
 # Connect to DuckDB
 con = duckdb.connect(DB_FILE)
-print(f"✅ Connected to {DB_FILE}")
+print(f"Connected to {DB_FILE}")
 
 # Create table
 con.execute("""
@@ -43,13 +43,13 @@ if os.path.exists(DATA_FILE):
     con.execute("DELETE FROM products")  # optional: clear old data
     con.register("df_view", df)
     con.execute("INSERT INTO products SELECT * FROM df_view")
-    print(f"✅ Loaded {len(df)} products from {DATA_FILE}")
+    print(f" Loaded {len(df)} products from {DATA_FILE}")
 else:
-    print(f"⚠️ Data file not found: {DATA_FILE}")
+    print(f"Data file not found: {DATA_FILE}")
 
 # Preview
-print("📦 Sample rows:")
+print(" Sample rows:")
 print(con.execute("SELECT * FROM products LIMIT 5").fetchdf())
 
 con.close()
-print("🎉 Done!")
+print(" Done!")
