@@ -1,0 +1,16 @@
+
+fastapi
+uvicorn
+duckdb
+pandas
+openpyxl
+langchain
+langchain-community
+langgraph
+langchain-groq
+python-dotenv
+requests
+streamlit
+textblob
+tqdm
+

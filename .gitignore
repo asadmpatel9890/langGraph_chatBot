@@ -1,0 +1,28 @@
+.env
+~$sample.xlsx
+Scripts/
+Lib/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.duckdb
+.env
+.venv/
+venv/
+env/
+
+# VSCode / PyCharm
+.vscode/
+.idea/
+
+# Streamlit cache
+.streamlit/
+
+# OS files
+.DS_Store
+
+# Chroma / FAISS vector DB
+chroma_db/
