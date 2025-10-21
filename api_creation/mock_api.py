@@ -30,9 +30,9 @@ def get_order(order_id: str):
         raise HTTPException(status_code=404, detail="Order not found")
     return {
         "order_id": result[0],
-        "Product Name": result[1],
+        "Product_Name": result[1],
         "Category": result[2],
         "Price": result[3],
-        "Shipping Method": result[-5],
+        "Shipping_Method": result[-5],
         "Status": result[-1]
     }
