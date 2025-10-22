@@ -101,10 +101,10 @@ Example .env:
 GROQ_API_KEY=your_groq_api_key_here
 
 # --- (Optional) Azure OpenAI Alternative ---
-# AZURE_OPENAI_API_KEY=your_azure_api_key
-# AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-# AZURE_DEPLOYMENT_NAME=gpt-4o-mini
-# AZURE_OPENAI_API_VERSION=2024-02-01
+ AZURE_OPENAI_API_KEY=your_azure_api_key
+ AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+ AZURE_DEPLOYMENT_NAME=gpt-4o-mini
+ AZURE_OPENAI_API_VERSION=2024-02-01
 
 
 💡 You can switch between Groq or Azure OpenAI by changing environment variables.
