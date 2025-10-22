@@ -33,49 +33,87 @@ F --> G[End]
 
 ---
 
-## Follow these steps to set up and run the ShopEase AI Assistant on your local machine.
+# ⚙️ Installation Guide
 
-🧩 1️⃣ Prerequisites
+Follow these steps to set up and run the **ShopEase AI Assistant** on your local machine.
+
+---
+
+## 🧩 1️⃣ Prerequisites
 
 Before you begin, ensure you have the following installed:
 
-Tool Recommended Version Description Python 3.10 or higher Core runtime environment pip Latest Python package manager Git Latest For cloning the repository Virtualenv (Optional) For isolated Python environments
+| Tool | Recommended Version | Description |
+|-------|----------------------|-------------|
+| **Python** | 3.10 or higher | Core runtime environment |
+| **pip** | Latest | Python package manager |
+| **Git** | Latest | For cloning the repository |
+| **Virtualenv** | (Optional) | For isolated Python environments |
 
 Verify your Python installation:
 
+```bash
 python --version
+```
 
-🧱 2️⃣ Clone the Repository
+---
+
+## 🧱 2️⃣ Clone the Repository
 
 Clone the repository from GitHub:
 
-git clone https://github.com/<your-username>/ShopEase-AI.git cd ShopEase-AI
+```bash
+git clone https://github.com/<your-username>/ShopEase-AI.git
+cd ShopEase-AI
+```
 
-If you haven’t created the repository yet:
+If you haven’t created the repository yet, initialize one:
 
+```bash
 git init
+```
 
-🧠 3️⃣ Create a Virtual Environment
+---
+
+## 🧠 3️⃣ Create a Virtual Environment
 
 It’s good practice to create a virtual environment to keep dependencies isolated.
 
-🪟 Windows: python -m venv langapi langapi\Scripts\activate
+### 🪟 Windows:
+```bash
+python -m venv langapi
+langapi\Scripts\activate
+```
 
-🐧 Linux / 🍏 macOS: python3 -m venv langapi source langapi/bin/activate
+### 🐧 Linux / 🍏 macOS:
+```bash
+python3 -m venv langapi
+source langapi/bin/activate
+```
 
 Deactivate anytime:
 
+```bash
 deactivate
+```
 
-📦 4️⃣ Install Dependencies
+---
+
+## 📦 4️⃣ Install Dependencies
 
 Install all required Python libraries:
 
+```bash
 pip install -r requirements.txt
+```
 
 Or install manually:
 
+```bash
 pip install langchain langchain-community langgraph chromadb sentence-transformers streamlit fastapi duckdb uvicorn python-dotenv requests
+```
+
+---
 
 🔐 5️⃣ Setup Environment Variables
 
