@@ -10,6 +10,9 @@ from agent.rag_chain import RagService
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import json
+from typing import Dict, Any, List
+
+
 load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
 
@@ -66,57 +69,56 @@ def create_ecom_graph():
 
 
     # --- Node 3: API Node ---
-    def api_node(state: ChatState) -> Dict[str, Any]:
+    def api_node(state: Dict[str, Any]) -> Dict[str, Any]:
         print(f"DEBUG: User input: {state['user_input']}")
+
         def get_order_status(order_id: str):
             """Call external REST API to get order details."""
             url = f"http://127.0.0.1:8001/orders/{order_id}"
             try:
-                res = requests.get(url)
+                res = requests.get(url, timeout=5)
                 res.raise_for_status()
                 return res.json()
             except Exception as e:
-                return {"error": str(e)}
-    
-    # Extract order ID from user input
-        match = re.search(r"\b[A-Z]*\d+\b", state["user_input"])
-        if not match:
-            return {"llm_response": "Please provide your order ID (e.g., P2941, 101)."}
-    
-        order_id = match.group(0).strip().upper()
-        print(f"DEBUG: Extracted order_id: {order_id}")
-    
-        try:
-            data = get_order_status(order_id)
-            print(f"DEBUG: API response: {data}")
-        
+                return {"error": str(e), "order_id": order_id}
+
+        # 1) Extract ALL order IDs (e.g., P2941, 101, AB123)
+        # Pattern: optional leading letters + digits, separated by space/comma/and
+        order_ids: List[str] = re.findall(r"\b[A-Z]*\d+\b", state["user_input"].upper())
+
+        if not order_ids:
+            return {"llm_response": "Please provide one or more order IDs (e.g., P2941, 101)."}
+
+        print(f"DEBUG: Extracted order_ids: {order_ids}")
+
+    # 2) Query each order and build per-order summaries
+        summaries = []
+        for oid in order_ids:
+            data = get_order_status(oid)
+            print(f"DEBUG: API response for {oid}: {data}")
+
             if "error" in data:
-                return {"llm_response": f"Could not fetch order info: {data['error']}"}
-        
-        #Read data from your API response format
-            api_order_id = data.get("order_id", "Unknown")
+                summaries.append(f"- {oid}: Could not fetch info ({data['error']})")
+                continue
+
+            # Adapt keys to your API response
+            api_order_id = data.get("order_id", oid)
             product_name = data.get("Product_Name", "Unknown")
             category = data.get("Category", "N/A")
             price = data.get("Price", "N/A")
             shipping_method = data.get("Shipping_Method", "Unknown")
             status = data.get("Status", "Unknown")
 
-            response = (
-                f"Here are the details for order {api_order_id}:\n"
-                f"- Product Name: {product_name}\n"
-                f"- Category: {category}\n"
-                f"- Price: ${price}\n"
-                f"- Shipping Method: {shipping_method}\n"
-                f"- Status: {status.title()}"
+            summaries.append(
+                f"- Order {api_order_id}: {status.title()} | {product_name} ({category}) | "
+                f"Price: ${price} | Shipping: {shipping_method}"
             )
 
-
-            return {"llm_response": response}
-        
-        except Exception as e:
-            print(f"DEBUG: Exception occurred: {str(e)}")
-            return {"llm_response": f"Sorry, I couldn't retrieve order information. Please try again later."}
-
+        # 3) Aggregate response
+        header = "Here are the details for your orders:\n"
+        response = header + "\n".join(summaries)
+        result1 = llm.invoke(f"Transform the following {response} into Table  format,Add little formality befor and after representing data")
+        return {"llm_response": result1.content}
 
     # --- Node 4: General / fallback ---
     def general_node(state: ChatState) -> Dict[str, Any]:
