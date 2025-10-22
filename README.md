@@ -115,33 +115,126 @@ pip install langchain langchain-community langgraph chromadb sentence-transforme
 
 ---
 
-🔐 5️⃣ Setup Environment Variables
+# 🔐 5️⃣ Setup Environment Variables
 
-Create a .env file in your root directory and add API keys.
+Create a `.env` file in your **root directory** and add your API keys and configuration details.
 
-Example .env:
+---
 
---- GROQ Configuration ---
+### 🧾 Example `.env` File
+
+```bash
+# --- GROQ Configuration ---
 GROQ_API_KEY=your_groq_api_key_here
 
---- (Optional) Azure OpenAI Alternative ---
-AZURE_OPENAI_API_KEY=your_azure_api_key AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/ AZURE_DEPLOYMENT_NAME=gpt-4o-mini AZURE_OPENAI_API_VERSION=2024-02-01
+# --- (Optional) Azure OpenAI Alternative ---
+AZURE_OPENAI_API_KEY=your_azure_api_key
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_DEPLOYMENT_NAME=gpt-4o-mini
+AZURE_OPENAI_API_VERSION=2024-02-01
+```
 
-💡 You can switch between Groq or Azure OpenAI by changing environment variables.
+---
 
-🗂️ 6️⃣ Prepare Your Data
+### 💡 Tip
 
-Create a folder named data/ and add FAQ markdown files:
+You can easily switch between **Groq** and **Azure OpenAI** by modifying the environment variables in your `.env` file.
 
-data/faqs_orders.md data/faqs_returns.md data/faqs_policies.md
+- Use **GROQ_API_KEY** if you’re working with **Groq LLM**.
+- Use **Azure OpenAI** keys if deploying in a Microsoft ecosystem.
 
-Each file should contain structured FAQs or policies. Example:
+---
 
-Q: How do I track my order?
+### ⚠️ Note
+
+> Ensure your `.env` file is added to your `.gitignore` to prevent exposing API keys publicly.
+
+Add this line to your `.gitignore` file:
+
+```bash
+.env
+```
+
+---
+# 🗂️ 6️⃣ Prepare Your Data
+
+Before running the chatbot, you need to prepare your FAQ and policy documents for RAG (Retrieval-Augmented Generation).
+
+---
+
+### 📁 Create a Data Directory
+
+In the root of your project, create a folder named `data/`.
+
+Example structure:
+
+```
+ShopEase-AI/
+│
+├── data/
+│   ├── faqs_orders.md
+│   
+│
+├── scripts/
+├── agent/
+└── streamlit_app.py
+```
+
+---
+
+### 🧾 Add Your FAQ Markdown Files
+
+Inside the `data/` folder, add your FAQ and policy files in Markdown (`.md`) format.
+
+At minimum, you should include:
+
+```
+data/faqs_orders.md
+```
+
+---
+
+### ✍️ Example `faqs_orders.md` Content
+
+Here’s a simple example you can copy:
+
+```markdown
+### Q: How do I track my order?
 A: You can track your order using your order ID on the 'Track Order' page.
 
-Q: What is the return period?
+### Q: What is the return period?
 A: You can return items within 30 days of delivery.
+
+### Q: Can I modify my order after placing it?
+A: Orders can be modified only within 2 hours of placement. Please contact customer support for assistance.
+
+### Q: How will I receive my refund?
+A: Refunds are processed to your original payment method within 5-7 business days.
+```
+
+---
+
+### 💡 Tips for Writing Good FAQ Files
+
+- Keep questions concise (start with “How”, “What”, or “Can”).  
+- Provide clear and factual answers.  
+- Use headings (`###`) for each question.  
+- Avoid including large, irrelevant text blocks.  
+- Group topics (orders, returns, policies) in separate files.
+
+---
+
+### ✅ Why It Matters
+
+These markdown files are used by the **RAG ingestion pipeline** (`scripts/ingest_all.py`) to:
+- Split the content into smaller chunks.
+- Generate semantic embeddings.
+- Store them in a **Chroma vector database** for fast retrieval during chat.
+
+Without these files, the chatbot cannot answer FAQ-related questions.
+
+---
+
 
 🧮 7️⃣ Build the Vector Database (RAG Setup)
 
