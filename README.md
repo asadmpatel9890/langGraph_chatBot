@@ -236,96 +236,278 @@ Without these files, the chatbot cannot answer FAQ-related questions.
 ---
 
 
-🧮 7️⃣ Build the Vector Database (RAG Setup)
+# 🧮 7️⃣ Build the Vector Database (RAG Setup)
 
-Run the ingestion script to build a Chroma vector database from FAQs:
+To enable your chatbot to answer FAQ-related queries using **Retrieval-Augmented Generation (RAG)**,  
+you need to build a **Chroma vector database** from your Markdown files.
 
+---
+
+### ⚙️ Step 1: Run the Ingestion Script
+
+Once your FAQ Markdown files are placed in the `data/` directory, run the ingestion script:
+
+```bash
 python scripts/ingest_all.py
+```
 
-✅ Expected Output:
+This script will:
+- Load all `.md` files from the `data/` folder  
+- Split text into smaller chunks using **RecursiveCharacterTextSplitter**  
+- Generate embeddings using **HuggingFace Sentence Transformers**  
+- Store all embeddings in a persistent **Chroma vector database** under `chroma_db/`
 
-Starting FAQ ingestion process... Loaded 3 FAQ documents. Created 52 text chunks. Successfully built Chroma DB with 52 chunks. Database saved to: chroma_db/
+---
 
-🌐 8️⃣ Start the FastAPI Backend
+### ✅ Expected Output
 
-Provides order data for real-time tracking.
+```
+Starting FAQ ingestion process...
+Loaded: faqs_orders.md (14500 chars)
+Loaded: faqs_returns.md (9800 chars)
+Loaded 3 FAQ documents.
+Splitting text into smaller chunks...
+Created 52 text chunks.
+Generating embeddings using sentence-transformers/all-MiniLM-L6-v2...
+Creating / Updating Chroma database at 'chroma_db'...
+Successfully built Chroma DB with 52 chunks.
+Database saved to: chroma_db/
+```
 
-Run the API server:
+---
 
-cd api uvicorn main:app --reload --port 8001
+# 🌐 8️⃣ Start the FastAPI Backend
 
-✅ The API will start on:
+The **FastAPI backend** powers real-time order tracking by serving order data from a DuckDB or mock database.  
+This allows your chatbot to respond dynamically when users ask for their order details.
 
+---
+
+### ⚙️ Step 1: Navigate to the API Directory
+
+Change directory to your API folder:
+
+```bash
+cd api
+```
+
+---
+
+### ⚙️ Step 2: Start the FastAPI Server
+
+Run the following command to start the FastAPI app:
+
+```bash
+uvicorn mock_api:app --reload --port 8001
+```
+
+- `--reload`: Automatically restarts the server when you make changes to the code.  
+- `--port 8001`: Runs the API on port 8001 (you can change it if needed).
+
+---
+
+### ✅ Server Output Example
+
+When the server starts successfully, you’ll see something like this in your terminal:
+
+```
+INFO:     Will watch for changes in these directories: ['C:\ShopEase-AI\api']
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [28764] using WatchFiles
+INFO:     Started server process [19020]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+```
+
+---
+
+### 🌍 Step 3: Verify the API is Running
+
+Open your browser or Postman and visit:
+
+```
 http://127.0.0.1:8001
+```
 
-Test it:
+You should see a JSON response confirming the API is live:
 
+```json
+{
+  "message": "ShopEase Mock API is running!"
+}
+```
+
+---
+
+### 🧾 Step 4: Test Order Retrieval Endpoint
+
+Test the `/orders/{order_id}` endpoint by visiting:
+
+```
 http://127.0.0.1:8001/orders/P1060
-
-💬 9️⃣ Launch the Streamlit Chat Interface
-
-Go back to the root folder and start the Streamlit frontend:
-
-streamlit run streamlit_app.py
-
-🪄 Features:
-
-Conversational chat interface
-
-API-integrated order tracking
-
-RAG-based FAQ answering
-
-Context-aware responses
-
-“Clear Chat” button & memory retention
-
-🧠 🔟 Test the Chatbot
-
-Try your first query:
-
-“Where is my order P1060?”
+```
 
 ✅ Example Response:
 
-Field Details Product Name Blender Category Home Appliances Price ₹1873.52 Shipping Method Standard Status In Godown 🔄 11️⃣ Optional: Use DuckDB as Backend Database
+```json
+{
+  "order_id": "P1060",
+  "Product_Name": "Blender",
+  "Category": "Home Appliances",
+  "Price": 1873.52,
+  "Shipping_Method": "Standard",
+  "Status": "In Godown"
+}
+```
 
-DuckDB stores product and order data for your FastAPI.
+---
 
-Example:
+### ⚠️ Troubleshooting
 
-import duckdb con = duckdb.connect("ecommerce.duckdb") con.execute("CREATE TABLE products AS SELECT * FROM read_csv_auto('orders.csv');")
+| Issue | Possible Cause | Solution |
+|--------|----------------|----------|
+| **404 Not Found** | Wrong port or endpoint path | Ensure FastAPI is running on `8001` and endpoint `/orders/{id}` exists |
+| **Connection Refused** | API not started | Run `uvicorn main:app --reload --port 8001` |
+| **Order Not Found** | Missing order in DuckDB or mock data | Check your database file or `main.py` data dictionary |
 
-🧹 12️⃣ (Optional) Clean Build
+---
 
-If you need to rebuild your vector DB or clear cache:
+### 💡 Tip
 
-rm -rf chroma_db/ python scripts/ingest_all.py
+You can customize your FastAPI app to fetch data from **DuckDB** like this:
 
-✅ 13️⃣ Verify Everything is Running Component Command Status URL FastAPI Backend uvicorn main:app --reload --port 8001 http://127.0.0.1:8001
+```python
+import duckdb
 
-Streamlit Frontend streamlit run streamlit_app.py http://localhost:8501
+con = duckdb.connect("ecommerce.duckdb")
+result = con.execute("SELECT * FROM products WHERE order_id = 'P1060'").fetchone()
+print(result)
+```
 
-Chroma DB auto-created chroma_db/ folder 🪶 14️⃣ You're All Set!
+This approach integrates live order data with your chatbot API seamlessly.
 
-Your ShopEase AI Assistant is live 🎉 You can now ask:
+---
 
-🗣️ “What’s your return policy?” 🗣️ “Where is my order 102?” 🗣️ “Can I cancel my recent purchase?”
+### 🧠 Why This Step Matters
 
-🧾 Troubleshooting Issue Possible Fix Error loading data/faqs_orders.md Ensure .md files are UTF-8 encoded FastAPI returns 404 Verify FastAPI is running on port 8001 Streamlit chat repeats messages Check if memory.add() is being duplicated ModuleNotFoundError Reinstall dependencies with pip install -r requirements.txt 🪶 Credits
+This FastAPI service is the backbone for real-time queries in your chatbot —  
+it lets users ask questions like:
 
-Developed by Team Phoenix 🔥
+> "Where is my order P1060?"  
+> "Has my Yoga Mat been shipped?"  
 
-“Innovating the future of AI-powered commerce.”
+and get accurate, database-backed responses instantly.
 
-Built with 💙 using:
+---
 
-LangGraph + LangChain
+# 💬 9️⃣ Launch the Streamlit Chat Interface
 
-Groq LLM / Azure OpenAI
+The **Streamlit frontend** provides a clean, interactive chat interface where users can communicate with the AI assistant in real time.  
+It connects to the backend (FastAPI) and the RAG system to deliver accurate, human-like responses.
 
-FastAPI + DuckDB
+---
 
-Streamlit
+### ⚙️ Step 1: Navigate to the Project Root
 
-ChromaDB
+Make sure you’re in the root folder of your project (where `ui/app.py` is located):
+
+
+---
+
+### ⚙️ Step 2: Run the Streamlit App
+
+Start the chatbot interface by running:
+
+```bash
+streamlit run ui/app.py
+```
+
+Streamlit will automatically open your default browser.  
+If not, manually visit:
+
+```
+http://localhost:8501
+```
+
+---
+
+### ✅ Expected Output
+
+In your terminal, you should see:
+
+```
+You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.xx.xx:8501
+```
+
+---
+
+### 🪄 Features of the Chat Interface
+
+| Feature | Description |
+|----------|-------------|
+| 💬 **Conversational Chat Interface** | Engage naturally with the chatbot using a chat-style interface. |
+| 🔗 **API-Integrated Order Tracking** | Fetch live order data from FastAPI (e.g., “Where is my order P1060?”). |
+| 📚 **RAG-Based FAQ Answering** | Retrieve accurate responses using the Chroma vector database built from FAQs. |
+| 🧠 **Context-Aware Responses** | Maintains short-term memory to enable smooth, multi-turn conversations. |
+| 🧹 **Clear Chat Button** | Instantly clears the current chat history and memory buffer. |
+| 🎨 **Minimalist Design** | Simple, elegant Streamlit UI with sidebar navigation and responsive layout. |
+
+---
+
+### 🧭 UI Overview
+
+When the Streamlit app runs, you’ll see:
+
+- **Sidebar Menu:**  
+  - Displays ShopEase logo/title  
+  - Lists chatbot capabilities (Orders, Returns, Payments, etc.)  
+  - Includes “🧹 Clear Chat” button  
+
+- **Main Chat Window:**  
+  - Displays user and assistant messages in chat bubbles  
+  - Shows typing spinner during AI response generation  
+  - Supports markdown rendering for tables and formatted text  
+
+---
+
+### 🧠 Example Conversation
+
+**User:**  
+> “Where is my order P1060?”
+
+**Assistant:**  
+> Here are the details for order **P1060**:
+
+| Field | Details |
+|--------|----------|
+| **Product** | Blender |
+| **Category** | Home Appliances |
+| **Price** | ₹1873.52 |
+| **Shipping Method** | Standard |
+| **Status** | In Godown |
+
+---
+
+### ⚠️ Troubleshooting
+
+| Issue | Possible Cause | Fix |
+|--------|----------------|-----|
+| **Streamlit doesn’t open in browser** | Browser auto-launch disabled | Manually visit `http://localhost:8501` |
+| **Chat repeats old messages** | Memory duplication issue | Ensure `memory.add()` is called only once per turn |
+| **API errors in chat** | FastAPI not running | Start FastAPI with `uvicorn main:app --reload --port 8001` |
+| **Slow responses** | Large model or many chunks in Chroma | Reduce chunk size or increase hardware resources |
+
+---
+
+### 🪶 Created By
+
+Developed by **Team Phoenix** 🔥  
+> “Empowering E-commerce with Intelligent Conversational AI.”
+
+---
+
+
+
