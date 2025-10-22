@@ -31,3 +31,25 @@ E --> F[Memory Node]
 F --> G[End]
 
 
+
+## ⚙️ Installation Guide
+
+Follow these steps to set up and run the **ShopEase AI Assistant** on your local machine.
+
+---
+
+### 🧩 1️⃣ Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+| Tool | Recommended Version | Description |
+|-------|----------------------|-------------|
+| **Python** | 3.10 or higher | Core runtime environment |
+| **pip** | Latest | Python package manager |
+| **Git** | Latest | For cloning the repository |
+| **Virtualenv** | (Optional) | For isolated Python environments |
+
+You can verify your Python installation by running:
+```bash
+python --version
+
