@@ -9,7 +9,7 @@ from agent.intent_detector import detect_intent
 from agent.rag_chain import RagService
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
-
+import json
 load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
 
@@ -17,7 +17,8 @@ SYSTEM_PROMPT = """
 You are a polite and helpful customer support assistant for an e-commerce company.
 You can answer questions using FAQs or API data.
 Be concise, empathetic, and accurate.
-When answering order-related questions,  never hallucinate and give the output in table format
+When answering order-related questions,  never hallucinate and give the ouyput using api data only
+Give api output as it is
 .
 """
 
@@ -53,44 +54,69 @@ def create_ecom_graph():
         return {"llm_response": answer}
     
 
-    def get_order_status(order_id: str):
-        """Call external REST API to get order details."""
-        url = f"http://localhost:8001/orders/{order_id}"
-        try:
-            res = requests.get(url, timeout=5)
-            res.raise_for_status()
-            return res.json()
-        except Exception as e:
-            return {"error": str(e)}
+    # def get_order_status(order_id: str):
+    #     """Call external REST API to get order details."""
+    #     url = f"http://127.0.0.1:8001/orders/{order_id}"
+    #     try:
+    #         res = requests.get(url)
+    #         res.raise_for_status()
+    #         return res.json()
+    #     except Exception as e:
+    #         return {"error": str(e)}
 
 
     # --- Node 3: API Node ---
     def api_node(state: ChatState) -> Dict[str, Any]:
-        match = re.search(r"\b([A-Z]\d{3,5}|\d{3,})\b", state["user_input"])
+        print(f"DEBUG: User input: {state['user_input']}")
+        def get_order_status(order_id: str):
+            """Call external REST API to get order details."""
+            url = f"http://127.0.0.1:8001/orders/{order_id}"
+            try:
+                res = requests.get(url)
+                res.raise_for_status()
+                return res.json()
+            except Exception as e:
+                return {"error": str(e)}
+    
+    # Extract order ID from user input
+        match = re.search(r"\b[A-Z]*\d+\b", state["user_input"])
         if not match:
-            return {"llm_response": "Please provide your order ID (e.g., 101)."}
+            return {"llm_response": "Please provide your order ID (e.g., P2941, 101)."}
+    
+        order_id = match.group(0).strip().upper()
+        print(f"DEBUG: Extracted order_id: {order_id}")
+    
+        try:
+            data = get_order_status(order_id)
+            print(f"DEBUG: API response: {data}")
         
-        order_id = match.group(0)
-        data = get_order_status(order_id)
+            if "error" in data:
+                return {"llm_response": f"Could not fetch order info: {data['error']}"}
         
-        if "error" in data:
-            return {"llm_response": f"Could not fetch order info: {data['error']}"}
-        
-        Product_Name = data.get("Product_Name", "Unknown")
-        Category = data.get("Category", "N/A")
-        Price = data.get("Price", "N/A")
-        Shipping_Method = data.get("Shipping_Method", "Unknown")
-        Status = data.get("Status", "Unknown")
+        #Read data from your API response format
+            api_order_id = data.get("order_id", "Unknown")
+            product_name = data.get("Product_Name", "Unknown")
+            category = data.get("Category", "N/A")
+            price = data.get("Price", "N/A")
+            shipping_method = data.get("Shipping_Method", "Unknown")
+            status = data.get("Status", "Unknown")
 
-        response = (
-            f"Here are the details for order {order_id}:\n"
-            f"- Product_Name: {Product_Name}\n"
-            f"- Category: {Category}\n"
-            f"- Price: {Price}\n"
-            f"- Shipping_Method: {Shipping_Method}\n"
-            f"- Status: {Status}"
-        )
-        return {"llm_response": response}
+            response = (
+                f"Here are the details for order {api_order_id}:\n"
+                f"- Product Name: {product_name}\n"
+                f"- Category: {category}\n"
+                f"- Price: ${price}\n"
+                f"- Shipping Method: {shipping_method}\n"
+                f"- Status: {status.title()}"
+            )
+
+
+            return {"llm_response": response}
+        
+        except Exception as e:
+            print(f"DEBUG: Exception occurred: {str(e)}")
+            return {"llm_response": f"Sorry, I couldn't retrieve order information. Please try again later."}
+
 
     # --- Node 4: General / fallback ---
     def general_node(state: ChatState) -> Dict[str, Any]:
