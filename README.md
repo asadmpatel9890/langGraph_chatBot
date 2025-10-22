@@ -12,7 +12,6 @@
 ✅ **LangGraph multi-node architecture** for conversation flow  
 ✅ **Short-term memory** for multi-turn chat  
 ✅ **Streamlit UI** for interactive chat interface  
-✅ **Sentiment-aware escalation (optional)**  
 ✅ Built and maintained by **Team Phoenix** 🔥
 
 ---
